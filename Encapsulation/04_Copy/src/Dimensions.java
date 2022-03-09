@@ -10,7 +10,19 @@ public class Dimensions {
     }
 
     public void calculateDimension() {
-        int result = width * height * length;
+        double result = width * height * length;
         System.out.println(result);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public int getLength() {
+        return length;
     }
 }

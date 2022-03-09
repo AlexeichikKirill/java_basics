@@ -1,14 +1,11 @@
-import org.w3c.dom.ls.LSOutput;
-
 public class CargoInformation {
-    private final int dimensions; // In centimeters
+    private final Dimensions dimensions; // In centimeters
     private final int weight; // In grams
     private final String deliveryAddress;
     private final boolean canFlip;
     private final boolean fragile;
 
-
-    public CargoInformation(int dimensions, int weight, String deliveryAddress, boolean canFlip, boolean fragile) {
+    public CargoInformation(Dimensions dimensions, int weight, String deliveryAddress, boolean canFlip, boolean fragile) {
         this.dimensions = dimensions;
         this.weight = weight;
         this.deliveryAddress = deliveryAddress;
@@ -20,7 +17,7 @@ public class CargoInformation {
         return new CargoInformation(dimensions, weight, deliveryAddress, canFlip, fragile);
     }
 
-    public CargoInformation setDimensions(int dimensions){
+    public CargoInformation setDimensions(Dimensions dimensions){
         return new CargoInformation(dimensions, weight, deliveryAddress, canFlip, fragile);
     }
 
