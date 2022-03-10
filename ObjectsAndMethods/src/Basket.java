@@ -1,13 +1,29 @@
 public class Basket {
 
     private static int count = 0;
-    private String items = "";
-    private int totalPrice = 0;
-    private int limit;
-    private double totalWeight = 0;
-    private int one = 1;
-    private int zero = 0;
+    private static String items = "";
+    private static int totalPrice = 0;
+    private static int limit;
+    private static double totalWeight = 0;
+    private final static int defaultQuantity = 1;
+    private final static int defaultZero = 0;
+    private static int averagePriceAllBasket = 0;
+    private static int averagePriceBasket = 0;
+    private static int numberAllBaskets = 0;
 
+    private static int totalPriseAllBasket = 0;
+    private static int totalCountAllProduct = 0;
+
+    public static int increasePrise(int price) {
+        Basket.totalPriseAllBasket =  Basket.totalPriseAllBasket + price;
+        return price;
+    }
+
+    public static int increaseTotalCount(int count) {
+        Basket.totalCountAllProduct = Basket.totalCountAllProduct + count;
+        return count;
+    }
+    
     public Basket() {
         increaseCount(1);
         items = "Список товаров:";
@@ -25,6 +41,16 @@ public class Basket {
         this.totalPrice = totalPrice;
     }
 
+    public static int averagePriceAllBasket() {
+        averagePriceAllBasket = totalPriseAllBasket / totalCountAllProduct;
+        return averagePriceAllBasket;
+    }
+
+    public static int averagePriceBasket() {
+        averagePriceBasket = totalPriseAllBasket / numberAllBaskets;
+        return averagePriceBasket;
+    }
+
     public static int getCount() {
         return count;
     }
@@ -33,14 +59,14 @@ public class Basket {
         Basket.count = Basket.count + count;
     }
 
-    public void add(String name, int price) {
-        add(name, price, one);
-    }
+    public void add(String name, int price) { add(name, price, defaultQuantity ); }
 
-    public void add(String name, int price, int count) { add(name, price, count, zero); }
+    public void add(String name, int price, int count) { add(name, price, count, defaultZero); }
 
-    public void add(String name, int price, int count, double weight) {
+    public static void add(String name, int price, int count, double weight) {
         totalWeight = totalWeight + weight;
+        totalCountAllProduct = totalCountAllProduct + count;
+        totalPriseAllBasket = totalPriseAllBasket + price;
         boolean error = false;
         if (contains(name)) {
             error = true;
@@ -55,6 +81,7 @@ public class Basket {
         items = items + "\n" + name + " - " +
                 count + " шт. - " + price + "руб.";
         totalPrice = totalPrice + count * price;
+        numberAllBaskets = numberAllBaskets + 1;
     }
 
     public void clear() {
@@ -72,7 +99,7 @@ public class Basket {
     }
 
 
-    public boolean contains(String name) {
+    public static boolean contains(String name) {
         return items.contains(name);
     }
 
