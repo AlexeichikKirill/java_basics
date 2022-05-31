@@ -1,3 +1,7 @@
+import java.time.LocalDate;
+import java.util.Calendar;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 public class Main {
@@ -11,8 +15,15 @@ public class Main {
     }
 
     public static Employee findEmployeeWithHighestSalary(List<Employee> staff, int year) {
-        //TODO Метод должен вернуть сотрудника с максимальной зарплатой среди тех,
-        // кто пришёл в году, указанном в переменной year
-        return null;
+        Date date = new Date(year-1900, 0, 1);
+        Employee emp = new Employee("Name", 0, date);
+        staff.stream().filter((i) -> i.getWorkStart().after(date))
+                .max(Comparator.comparing(Employee::getSalary))
+                .ifPresent((i) -> {
+                    emp.setName(i.getName());
+                    emp.setSalary(i.getSalary());
+                    emp.setWorkStart(i.getWorkStart());
+                });
+        return emp;
     }
 }
