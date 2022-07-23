@@ -10,10 +10,7 @@ public class Main {
     private static final String URL = "https://skillbox-java.github.io/";
     private static final String PATH = "src\\source.json";
     private static final ArrayList<String> PATH_LIST = new ArrayList<>();
-    private static final String PATH_RESOURCES = "C:\\Users\\Кирилл Алексейчик\\IdeaProjects\\" +
-            "java_basics\\FilesAndNetwork\\DataCollector\\src\\main\\resources";
-    private static final String[] STRINGS = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-            "11", "11A", "12", "14", "15", "D1", "D2"};
+    private static final String PATH_RESOURCES = "src\\main\\resources";
     private static final String JSON_FORMAT = "json";
     private static final String CSV_FORMAT = "csv";
 
@@ -85,8 +82,19 @@ public class Main {
         Map<String, ArrayList<String>> map = new HashMap<>();
         try {
             Document textHTML = Jsoup.connect(url).maxBodySize(0).get();
+            ArrayList<String> strings = new ArrayList<>();
+            String nameLn = textHTML.select("div.js-toggle-depend").html();
+            String[] s = nameLn.split("\n");
 
-            for (String string : STRINGS) {
+            for (int i = 0; i < s.length; i++) {
+                String[] a = s[i].split("\"", 3);
+                String[] t = a[1].split(" ");
+                String out = t[t.length -1].replace("ln-", "");
+                strings.add(out);
+            }
+
+
+            for (String string : strings) {
                 ArrayList<String> stationName = new ArrayList<>();
 
                 String nameLine = "line: " + textHTML.select("div[data-depend$='lines-" + string + "'}]")
