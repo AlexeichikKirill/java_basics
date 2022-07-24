@@ -1,96 +1,166 @@
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
 public class Main {
-    private static final String URL = "https://skillbox-java.github.io/";
-    private static final String PATH = "src\\source.json";
+    private static final String URL_MOSCOW_UNDERGROUND = "https://skillbox-java.github.io/";
+    private static final String PATH_FOR_ASSEMBLING_INFO = "src\\assembling.json";
+    private static final String PATH_FOR_MAP = "src\\map.json";
     private static final ArrayList<String> PATH_LIST = new ArrayList<>();
     private static final String PATH_RESOURCES = "src\\main\\resources";
-    private static final String JSON_FORMAT = "json";
-    private static final String CSV_FORMAT = "csv";
+    private static final Map<String, String> HAS_CONNECT = new TreeMap<>();
 
     public static void main(String[] args) throws Exception {
-        Map<String, ArrayList<String>> html = parseHTML(URL);
-        Map<String, String> stringMap = new TreeMap<>();
+        Map<String, String> outMap = new TreeMap<>();
+        Map<String, String> assemblingInfoMap = assemblingText();
+
+        JSONObject jsonObjectForAssemblingInfo = new JSONObject();
+        JSONArray jsonArrayForAssemblingInfo = new JSONArray();
+
+        assemblingInfoMap.forEach((name, info) -> outMap.put(name, info + HAS_CONNECT.getOrDefault(name, "hasConnection: false") + "\n"));
+
+        ArrayList<String> allInfoInString = new ArrayList<>();
+        outMap.forEach((name, info) -> allInfoInString.add(name + "\n" + info));
 
 
-        int end = findFileFormat(PATH_RESOURCES, JSON_FORMAT).size();
+        allInfoInString.forEach(stringAllInfo -> {
+            String[] splitString = stringAllInfo.split("\n");
+            Map<String, String> mapForAssembling = new TreeMap<>();
+            for (String string : splitString) {
+                if (!string.isEmpty()) {
+                    String[] parts = string.split(":");
+                    mapForAssembling.put(parts[0].trim(), parts[1].trim());
+                }
+            }
+            jsonArrayForAssemblingInfo.add(mapForAssembling);
+        });
 
-        for (int i = 0; i < end; i++) {
-            Map<String, String> json = parseJsonFile(findFileFormat(PATH_RESOURCES, JSON_FORMAT).get(i));
+        jsonObjectForAssemblingInfo.put("stations", jsonArrayForAssemblingInfo);
+        writeToDisk(jsonObjectForAssemblingInfo, PATH_FOR_ASSEMBLING_INFO);
 
-            html.forEach((lineName, arrayNameStation) -> {
-                arrayNameStation.forEach(nameStation -> {
-                    if (stringMap.containsKey(nameStation)) {
-                        if (json.containsKey(nameStation) && !stringMap.get(nameStation).contains(json.get(nameStation))) {
-//                            String oldValue = stringMap.get(nameStation);
-//                            stringMap.remove(nameStation);
-//                            stringMap.put(nameStation, oldValue + json.get(nameStation) + "\n");
-                            stringMap.replace(nameStation, stringMap.get(nameStation) + json.get(nameStation) + "\n");
-                        }
-                    } else {
-                        stringMap.put(nameStation, lineName + "\n");
-                    }
-                });
+        JSONObject jsonObjectForWrite = new JSONObject();
+        parseHTML(URL_MOSCOW_UNDERGROUND).forEach((line, names) ->  {
+            JSONArray jsonArrayForObject = new JSONArray();
+            names.forEach(name -> {
+                String[] spitName = name.split(":");
+                jsonArrayForObject.add(spitName[1].trim());
             });
-        }
+            jsonObjectForWrite.put(line.replace("line:", "").trim(), jsonArrayForObject);
+        });
 
-        stringMap.forEach((s, s2) -> System.out.println(s + "\n" + s2));
+        writeToDisk(jsonObjectForWrite, PATH_FOR_MAP);
+
+        parseHTML(URL_MOSCOW_UNDERGROUND).forEach((line, arrayListName) -> {
+            System.out.println(line + "\nКоличество станций - " + arrayListName.size());
+        });
     }
 
-    public static ArrayList<String> findFileFormat(String path, String findFormat) {
+    public static void writeToDisk(JSONObject object, String path) throws Exception {
+        PrintWriter out = new PrintWriter(new FileWriter(path));
+        out.write(object.toString());
+        out.close();
+    }
+
+    public static Map<String, String> assemblingText() throws Exception {
+        Map<String, ArrayList<String>> htmlMap = parseHTML(URL_MOSCOW_UNDERGROUND);
+        Map<String, String> outMap = new TreeMap<>();
+        int endCycle = findFileFormat(PATH_RESOURCES).size();
+
+        for (int i = 0; i < endCycle; i++) {
+            Map<String, String> mapParseFile = parserJsonAndCsvFile(findFileFormat(PATH_RESOURCES).get(i));
+
+            htmlMap.forEach((lineName, arrayNameStation) -> arrayNameStation.forEach(nameStation -> {
+                if (outMap.containsKey(nameStation)) {
+                    String addValue = "";
+                    if (mapParseFile.containsKey(nameStation) && !outMap.get(nameStation).contains(mapParseFile.get(nameStation))) {
+                        String[] part = mapParseFile.get(nameStation).split(":");
+                        if (!outMap.get(nameStation).contains(part[0])) {
+                            addValue += mapParseFile.get(nameStation) + "\n";
+                        }
+                    }
+                    outMap.replace(nameStation, outMap.get(nameStation) + addValue);
+                } else {
+                    if (mapParseFile.containsKey(nameStation)) {
+                        outMap.put(nameStation, lineName + "\n" + mapParseFile.get(nameStation) + "\n");
+                    } else {
+                        outMap.put(nameStation, lineName + "\n");
+                    }
+                }
+            }));
+        }
+        return outMap;
+    }
+
+    public static ArrayList<String> findFileFormat(String path) {
         File file = new File(path);
         if (file.isDirectory()) {
             for (File f : file.listFiles()) {
-                findFileFormat(f.getAbsolutePath(), findFormat);
+                findFileFormat(f.getAbsolutePath());
             }
-        } else if (file.getName().contains(findFormat) && !file.getAbsolutePath().contains("MACOSX")) {
+        } else if (!file.getAbsolutePath().contains("MACOSX") &&
+                !PATH_LIST.contains(file.getAbsolutePath())) {
             PATH_LIST.add(file.getAbsolutePath());
         }
         return PATH_LIST;
     }
 
-    public static Map<String, String> parseJsonFile(String path) throws Exception {
+    public static Map<String, String> parserJsonAndCsvFile(String path) throws Exception {
+        Map<String, String> outMap = new TreeMap<>();
         List<String> lines = Files.readAllLines(Path.of(path));
+        if (path.contains("json")) {
 
-        ArrayList<String> arrayName = new ArrayList<>();
-        ArrayList<String> arrayList = new ArrayList<>();
-        Map<String, String> map = new HashMap<>();
+            ArrayList<String> arrayName = new ArrayList<>();
+            ArrayList<String> arrayList = new ArrayList<>();
 
-        lines.forEach(s -> {
-            if (s.trim().length() > 5) {
-                String str = s.replaceAll("\"", "").trim();
-                if (s.contains("name")) {
-                    arrayName.add(str.replaceAll("station_name", "name").replaceAll(",", ""));
-                } else {
-                    arrayList.add(str.replaceAll("depth_meters", "depth"));
+            lines.forEach(s -> {
+                if (s.trim().length() > 5) {
+                    String str = s.replaceAll("\"", "").trim();
+                    if (s.contains("name")) {
+                        arrayName.add(str.replaceAll("station_name", "name").replaceAll(",", ""));
+                    } else {
+                        arrayList.add(str.replaceAll("depth_meters", "depth"));
+                    }
                 }
+            });
+            for (int i = 0; i < arrayList.size(); i++) {
+                outMap.put(arrayName.get(i), arrayList.get(i));
             }
-        });
-        for (int i = 0; i < arrayList.size(); i++) {
-            map.put(arrayName.get(i), arrayList.get(i));
+        } else {
+            lines.forEach(line -> {
+                String[] splitLine = line.split(",");
+                String info;
+                if (splitLine[1].split("[.]").length > 1) {
+                    info = "date: " + splitLine[1];
+                } else {
+                    info = "depth: " + splitLine[1];
+                }
+                outMap.put("name: " + splitLine[0], info);
+            });
         }
-        return map;
+        return outMap;
     }
 
     public static Map<String, ArrayList<String>> parseHTML(String url) {
-        Map<String, ArrayList<String>> map = new HashMap<>();
+        Map<String, ArrayList<String>> outMap = new HashMap<>();
         try {
             Document textHTML = Jsoup.connect(url).maxBodySize(0).get();
             ArrayList<String> strings = new ArrayList<>();
-            String nameLn = textHTML.select("div.js-toggle-depend").html();
-            String[] s = nameLn.split("\n");
+            String htmlName = textHTML.select("div.js-toggle-depend").html();
+            String[] splitName = htmlName.split("\n");
 
-            for (int i = 0; i < s.length; i++) {
-                String[] a = s[i].split("\"", 3);
-                String[] t = a[1].split(" ");
-                String out = t[t.length -1].replace("ln-", "");
-                strings.add(out);
+            for (String value : splitName) {
+                String[] splitName2 = value.split("\"", 3);
+                String[] clearNum = splitName2[1].split(" ");
+                String numLine = clearNum[clearNum.length - 1].replace("ln-", "");
+                strings.add(numLine);
             }
 
 
@@ -99,22 +169,30 @@ public class Main {
 
                 String nameLine = "line: " + textHTML.select("div[data-depend$='lines-" + string + "'}]")
                         .text();
-                String[] stations = textHTML.select("div[data-depend-set=lines-" + string + "]")
+                String[] stationsName = textHTML.select("div[data-depend-set=lines-" + string + "]")
                         .text().replaceAll("\\d", "").split("[.]");
 
-                for (String station : stations) {
+                String[] stationsNameHtml = textHTML.select("div[data-depend-set=lines-" + string + "]").html().split("\n");
+
+                for (String html : stationsNameHtml) {
+                    if (html.contains("переход")) {
+                        String[] s = html.split("name\">");
+                        String[] s2 = s[1].split("</span");
+                        HAS_CONNECT.put("name: " + s2[0], "hasConnection: true");
+                    }
+                }
+
+                for (String station : stationsName) {
                     if (station.isEmpty()) {
                         continue;
                     }
                     stationName.add("name: " + station.trim());
                 }
-
-                map.put(nameLine, stationName);
+                outMap.put(nameLine, stationName);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return map;
+        return outMap;
     }
-
 }
