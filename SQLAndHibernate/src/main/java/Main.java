@@ -13,7 +13,6 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -32,9 +31,9 @@ public class Main {
 
         Course course = session.get(Course.class, 1);
 
-        Subscription subscription = session.get(Subscription.class, new Key(course.getStudents().get(1).getId(), course.getId()));
+        Purchaselist purchaselist = session.get(Purchaselist.class, new KeyP(course.getStudents().get(1).getName(), course.getName()));
 
-        System.out.println(subscription.getSubscriptionDate());
+        System.out.println(purchaselist.getPrice());
 
         transaction.commit();
         sessionFactory.close();

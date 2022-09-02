@@ -5,7 +5,7 @@ import java.util.Date;
 @Table(name = "subscriptions")
 public class Subscription {
 
-    @EmbeddedId
+    @EmbeddedId()
     private Key id;
 
     @ManyToOne(cascade = CascadeType.ALL)
