@@ -5,7 +5,9 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.query.Query;
 
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -13,11 +15,38 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
     public static void main(String[] args) {
-        Entity(1);
+        HQL();
+    }
+
+    public static void HQL() {
+        StandardServiceRegistry registry = new StandardServiceRegistryBuilder()
+                .configure("hibernate.cfg.xml").build();
+        Metadata metadata = new MetadataSources(registry).getMetadataBuilder().build();
+        SessionFactory sessionFactory = metadata.getSessionFactoryBuilder().build();
+
+
+        Session session = sessionFactory.openSession();
+        session.beginTransaction();
+
+        String hql = "FROM " + Purchaselist.class.getSimpleName() ;
+        List<Purchaselist> purchases = session.createQuery(hql).getResultList();
+
+        for (Purchaselist purchase : purchases) {
+            LinkedPurchaseList purchaseList = new LinkedPurchaseList();
+            purchaseList.setId(new KeyP(purchase.getStudentName(), purchase.getCourseName()));
+            purchaseList.setStudentName(purchase.getStudentName());
+            purchaseList.setCourseName(purchase.getCourseName());
+
+            session.save(purchaseList);
+        }
+
+        session.getTransaction().commit();
+        sessionFactory.close();
     }
 
     public static void Entity(int courseNumber) {

@@ -10,6 +10,8 @@ public class KeyP implements Serializable {
     @Column(name = "course_name")
     private String courseName;
 
+    protected KeyP(){}
+
     public KeyP(String studentName, String courseName) {
         this.studentName = studentName;
         this.courseName = courseName;
