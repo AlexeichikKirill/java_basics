@@ -1,41 +1,24 @@
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 public class Main {
 
-    private static final String connectUrl = "https://lenta.ru/";
+    private static final String connectUrl = "https://skillbox.ru/";
 
-    public static void main(String[] args) throws IOException {
-        sueta(searchLink(connectUrl));
-    }
+    public static void main(String[] args){
 
-    private static List<String> searchLink(String url) throws IOException {
-        List<String> urlList = new ArrayList<>();
-        Document document = Jsoup.connect(url).get();
-        Elements elements = document.select("a[href*=/]");
+        LinkExecutor linkExecutor = new LinkExecutor(connectUrl);
+        String result = new ForkJoinPool(10).invoke(linkExecutor);
 
-        for (Element element : elements) {
-            String[] strElem = element.toString().split("href=\"");
-            String[] splitStrElem = strElem[1].split("\"", 2);
-            String out = splitStrElem[0];
-            if (out.startsWith(connectUrl) || out.startsWith("/") ) {
-                out = out.startsWith("/") ? connectUrl + out.replaceFirst("/","") : out;
-                System.out.println(out);
-            }
+        try {
+            FileWriter writer = new FileWriter("src/res/SiteMap");
+            writer.write(result);
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        return urlList;
-    }
-
-    private static void sueta(List<String> urlList) throws IOException {
-        for (String url : urlList) {
-            searchLink(url);
-        }
+        System.out.println(result);
     }
 }
