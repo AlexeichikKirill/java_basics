@@ -4,27 +4,26 @@ import org.springframework.web.bind.annotation.*;
 import response.ToDoList;
 
 import java.util.List;
-
 @RestController
 public class ToDoListController {
 
     @GetMapping("/ToDoLists/")
-    public List<ToDoList> list() {
+    public List<ToDoList> getToDoLists() {
         return StorageToDoList.getAllToDoLists();
     }
 
     @GetMapping("/ToDoLists/{id}")
-    public ToDoList get(@PathVariable int id) {
+    public ToDoList getToDoList(@PathVariable int id) {
         return StorageToDoList.get(id);
     }
 
     @PostMapping("/ToDoLists/")
-    public int add(ToDoList toDoList) {
+    public int addToDoList(ToDoList toDoList) {
         return StorageToDoList.addToDoList(toDoList);
     }
 
-    @PutMapping("ToDoLists/{id}")
-    public ToDoList put(@PathVariable int id, String message, String authorName) {
+    @PutMapping("/ToDoLists/{id}")
+    public ToDoList putToDoList(@PathVariable int id, String message, String authorName) {
         ToDoList toDoList = StorageToDoList.get(id);
         if (message.length() > 0) {
             toDoList.setMessage(message);
@@ -35,14 +34,21 @@ public class ToDoListController {
         return toDoList;
     }
 
-    @DeleteMapping("/ToDoLists/")
-    public void deleteAllToDoLists() {
+    @PutMapping("/ToDoList/")
+    public List<ToDoList> putToDoLists(List<ToDoList> list) {
         StorageToDoList.deleteAllToDoLists();
+        list.forEach(StorageToDoList::addToDoList);
+        return StorageToDoList.getAllToDoLists();
     }
 
     @DeleteMapping("/ToDoLists/{id}")
     public void delete(@PathVariable int id) {
         StorageToDoList.deleteToDoList(id);
+    }
+
+    @DeleteMapping("/ToDoLists/")
+    public void deleteAllToDoLists() {
+        StorageToDoList.deleteAllToDoLists();
     }
 
 }
