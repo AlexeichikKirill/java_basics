@@ -1,7 +1,7 @@
 package main;
 
 import org.springframework.web.bind.annotation.*;
-import response.ToDoList;
+import main.model.ToDoList;
 
 import java.util.List;
 @RestController
@@ -35,7 +35,7 @@ public class ToDoListController {
     }
 
     @PutMapping("/ToDoList/")
-    public List<ToDoList> putToDoLists(List<ToDoList> list) {
+    public List<ToDoList> putToDoLists(@RequestBody List<ToDoList> list) {
         StorageToDoList.deleteAllToDoLists();
         list.forEach(StorageToDoList::addToDoList);
         return StorageToDoList.getAllToDoLists();

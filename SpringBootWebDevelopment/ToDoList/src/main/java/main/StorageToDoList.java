@@ -1,6 +1,6 @@
 package main;
 
-import response.ToDoList;
+import main.model.ToDoList;
 
 import java.util.*;
 

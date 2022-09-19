@@ -1,16 +1,17 @@
-package response;
+package main.model;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+
 public class ToDoList {
 
-    private int id = 0;
-    private String authorName;
-    private String message;
+    private int id;
 
-    public ToDoList(String authorName, String message) {
-        int id = this.id++;
-        setId(id);
-        this.authorName = authorName;
-        this.message = message;
-    }
+    private String authorName;
+
+    private String message;
 
     public int getId() {
         return id;
