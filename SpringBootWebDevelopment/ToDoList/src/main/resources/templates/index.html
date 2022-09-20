@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.ord">
+<head>
+    <meta charset="UTF-8">
+    <title>ToDoList Lib</title>
+</head>
+<body>
+<h1>Library</h1>
+    <div th:each="tDl : ${tDLs}">
+        <a href="#" th:attr="data-id=${tDl.id}" th:text="${tDl.authorName}"></a>
+        <a href="#" th:attr="data-id=${tDl.id}" th:text="${tDl.message}"></a>
+    </div>
+</body>
+</html>
