@@ -1,34 +1,28 @@
-import java.io.FileOutputStream;
-
 public class Loader {
 
-    public static void main(String[] args) throws Exception {
-        long start = System.currentTimeMillis();
+    public static void main(String[] args) {
 
-        FileOutputStream writer = new FileOutputStream("res/numbers.txt");
+        int countRegCode = 100;
+        int countThread = 2;
 
-        char letters[] = {'У', 'К', 'Е', 'Н', 'Х', 'В', 'А', 'Р', 'О', 'С', 'М', 'Т'};
-        for (int number = 1; number < 1000; number++) {
-            int regionCode = 199;
-            for (char firstLetter : letters) {
-                for (char secondLetter : letters) {
-                    for (char thirdLetter : letters) {
-                        String carNumber = firstLetter + padNumber(number, 3) +
-                            secondLetter + thirdLetter + padNumber(regionCode, 2);
-                        writer.write(carNumber.getBytes());
-                        writer.write('\n');
-                    }
-                }
-            }
-        }
+        start(countRegCode, countThread);
 
-        writer.flush();
-        writer.close();
-
-        System.out.println((System.currentTimeMillis() - start) + " ms");
     }
 
-    private static String padNumber(int number, int numberLength) {
+    private static void start(int countRegCode, int countThread) {
+        for (int i = 0; i < countThread; i++) {
+            int count = countRegCode / countThread;
+            int first = count * i;
+            int second = first + count;
+            new Threads(first, second).start();
+            if (countRegCode % countThread != 0) {
+                int f = countRegCode % countThread;
+                new Threads(countRegCode - f, second + f).start();
+            }
+        }
+    }
+
+    public static String padNumber(int number, int numberLength) {
         String numberStr = Integer.toString(number);
         int padSize = numberLength - numberStr.length();
 
@@ -38,4 +32,5 @@ public class Loader {
 
         return numberStr;
     }
+
 }
